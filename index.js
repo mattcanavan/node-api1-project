@@ -1,4 +1,5 @@
 // (common js)
+const { json } = require('express');
 const express = require('express') //imports express from node_modules folder
 const shortid = require('shortid') //imports shortid from node_modules folder
 
@@ -32,6 +33,15 @@ const Store = {
         users.push(newUser)
         return newUser
     },
+
+    delete(id) {
+        const user = users.find(user => user.id === id)
+
+        if (user){
+            users = users.filter(guy => guy.id !== id)
+        }
+        return user //to be deleted
+    }
 
 }
 
@@ -78,8 +88,22 @@ server.get('/api/users/:id', (req, res) => {
 })
 
 server.delete('/api/users/:id', (req, res) => {
-    //1- gather info from the request obj
-    //2- interact with db
+    
+    const { id } = req.params; //1- gather info from the request obj
+
+    const deleted = Store.delete(id); //2- interact with db
+    
+    try {
+        if (deleted){
+            res.status(200).json({message: "removed user"})
+        } else {
+            res.status(404).json({ message: "The user with the specified ID does not exist." })
+        }
+    }
+    catch {
+        res.status(500).json({ errorMessage: "The user could not be removed" })
+    }
+
     //3- send to client an appropriate response 
 })
 
