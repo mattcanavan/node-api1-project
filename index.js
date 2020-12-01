@@ -1,5 +1,4 @@
 // (common js)
-const { json } = require('express');
 const express = require('express') //imports express from node_modules folder
 const shortid = require('shortid') //imports shortid from node_modules folder
 
@@ -11,11 +10,12 @@ server.use(express.json())
 
 
 // FAKE TABLE
-const users = [{
+let users = [{
     id: shortid.generate(),
     name: "Tina",
     bio: "i like stuff and things."
 }]
+
 console.log(users)
 
 // HELPER FUNCTIONS
@@ -96,6 +96,7 @@ server.delete('/api/users/:id', (req, res) => {
     try {
         if (deleted){
             res.status(200).json({message: "removed user"})
+            console.log('removed user: ', deleted);
         } else {
             res.status(404).json({ message: "The user with the specified ID does not exist." })
         }
@@ -108,9 +109,26 @@ server.delete('/api/users/:id', (req, res) => {
 })
 
 server.put('/api/users/:id', (req, res) => {
-    //1- gather info from the request obj
-    //2- interact with db
-    //3- send to client an appropriate response 
+    
+    const { id } = req.params //1- gather info from the request obj
+    const {name, bio } = req.body;
+    const findIndex = users.findIndex(user => user.id === id);
+    
+    try{
+        if (!name || !bio){
+            res.status(400).json({ errorMessage: "Please provide name and bio for the user." }) //3- send to client an appropriate response 
+        } else if (findIndex === -1){
+            res.status(404).json({ message: "The user with the specified ID does not exist." }) //3- send to client an appropriate response 
+        }
+        else{
+            users[findIndex] = { id, name, bio} //2- interact with db
+            res.status(200).json(users[findIndex]) //3- send to client an appropriate response 
+        }
+    }
+    catch{
+        res.status(500).json({ errorMessage: "The user information could not be modified." })//3- send to client an appropriate response 
+    }
+    
 })
 
 /// CATCH-ALL ENDPOINTS
